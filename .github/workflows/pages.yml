@@ -28,6 +28,8 @@ jobs:
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
+        with:
+          enablement: true   # 初回に Pages を自動で有効化（Source: GitHub Actions）
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
