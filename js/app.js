@@ -524,7 +524,7 @@ async function runAnalysis() {
       showFail((result && result.reason) || 'からだぜんたいが うつるように さつえいしてね。');
       return;
     }
-    const feedback = buildFeedback(result);
+    const feedback = dedupePraise(buildFeedback(result));
     setProgress(100);
     state.frames = frames;
     state.meta = meta;
@@ -611,6 +611,15 @@ function fmtVal(m) {
   return `${v}${m.unit || ''}`;
 }
 
+// 見出しが よかったところ1つめと おなじ文なら、ほめリストから外す
+function dedupePraise(fb) {
+  if (!fb || !Array.isArray(fb.praise)) return fb;
+  const norm = (x) => String(x || '').replace(/[\s　！!。、,.]/g, '');
+  const head = norm(fb.headline);
+  const praise = fb.praise.filter((p) => { const n = norm(p); return !(n && head && head.includes(n)); });
+  return { ...fb, praise };
+}
+
 function fmtSec(ms) { return (Math.max(0, ms) / 1000).toFixed(1) + 'びょう'; }
 
 function renderStars(n) {
@@ -667,6 +676,7 @@ async function renderResult(result, feedback) {
   const praise = $('praise-list');
   praise.textContent = '';
   for (const p of (feedback && feedback.praise) || []) praise.appendChild(el('li', '', p));
+  praise.closest('.card').hidden = !praise.children.length;
 
   const tips = $('tips-list');
   tips.textContent = '';
@@ -710,7 +720,8 @@ async function renderResult(result, feedback) {
 
   const momentsEl = $('moments');
   momentsEl.textContent = '';
-  const moments = (result.keyMoments || []).filter((m) => typeof m.t === 'number');
+  const moments = (result.keyMoments || []).filter((m) => typeof m.t === 'number').sort((a, b) => a.t - b.t);
+  momentsEl.style.setProperty('--cols', String(moments.length >= 4 ? 2 : Math.max(1, moments.length)));
   state.thumbs = [];
   for (const m of moments) {
     const b = el('button', 'moment');
