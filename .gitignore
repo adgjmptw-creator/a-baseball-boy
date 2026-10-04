@@ -1,0 +1,24 @@
+# 個人情報・メディアは絶対にコミットしない
+*.mp4
+*.mov
+*.webm
+*.mkv
+*.avi
+*.m4v
+*.jpg
+*.jpeg
+*.png
+*.heic
+samples/
+uploads/
+private/
+
+# tooling
+node_modules/
+.DS_Store
+Thumbs.db
+*.log
+.env
+.env.*
+test-results/
+playwright-report/
