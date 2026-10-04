@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1e88e5">
+<meta name="description" content="どうがを とるだけで、AIが やきゅうの フォームを みてくれるよ。どうがは この たんまつの 中だけで しょりされます。">
+<title>やきゅう フォームチェック</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9A%BE%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+<noscript><p class="noscript">JavaScript を オンに してね。</p></noscript>
+
+<main class="app" id="app">
+
+  <!-- ===== 1. ホーム ===== -->
+  <section id="screen-home" class="screen" aria-labelledby="home-title">
+    <header class="hero">
+      <div class="hero-ball" aria-hidden="true">⚾</div>
+      <h1 id="home-title" tabindex="-1">やきゅう フォームチェック</h1>
+      <p class="lead">どうがを とるだけで、AIが フォームを みてくれるよ！</p>
+    </header>
+
+    <div class="privacy-note" role="note">
+      <span class="privacy-icon" aria-hidden="true">🔒</span>
+      <p>どうがは このスマホ／パソコンの中だけで しょりされます。どこにも おくられません。</p>
+    </div>
+
+    <div class="mode-buttons">
+      <button type="button" class="btn btn-pitch" data-mode="pitch" id="btn-mode-pitch">
+        <span class="btn-emoji" aria-hidden="true">⚾</span>
+        <span class="btn-text">なげる<small>（ピッチング）</small></span>
+        <span class="last-badge" hidden>まえに えらんだよ</span>
+      </button>
+      <button type="button" class="btn btn-bat" data-mode="bat" id="btn-mode-bat">
+        <span class="btn-emoji" aria-hidden="true">🏏</span>
+        <span class="btn-text">うつ<small>（バッティング）</small></span>
+        <span class="last-badge" hidden>まえに えらんだよ</span>
+      </button>
+    </div>
+
+    <div class="card tips-card">
+      <h2>📸 さつえいの コツ</h2>
+      <ul class="tip-list">
+        <li><span aria-hidden="true">👀</span> <b>よこ</b>から とろう</li>
+        <li><span aria-hidden="true">🧍</span> <b>ぜんしん</b>が はいるように</li>
+        <li><span aria-hidden="true">☀️</span> <b>あかるい</b> ばしょで</li>
+        <li><span aria-hidden="true">📱</span> スマホは うごかないように おいてね</li>
+      </ul>
+    </div>
+
+    <p class="small-note">※ はじめの 1かいだけ、AIの モデル（5〜10MBくらい）を ダウンロードするよ。</p>
+  </section>
+
+  <!-- ===== 2. 入力 ===== -->
+  <section id="screen-input" class="screen" aria-labelledby="input-title" hidden>
+    <div class="screen-head">
+      <button type="button" class="btn-back" id="btn-input-back" aria-label="もどる">← もどる</button>
+      <h2 id="input-title" tabindex="-1">どうがを じゅんび</h2>
+      <span class="mode-pill" id="input-mode-pill"></span>
+    </div>
+
+    <p id="input-error" class="notice notice-error" role="alert" hidden></p>
+
+    <!-- 2a. えらぶ -->
+    <div id="input-choose" class="panel">
+      <p class="lead">どちらかを えらんでね</p>
+      <label class="btn btn-file" for="file-input" id="btn-file">
+        <span class="btn-emoji" aria-hidden="true">📁</span>
+        <span class="btn-text">どうがを えらぶ</span>
+      </label>
+      <input type="file" id="file-input" accept="video/*" class="visually-hidden">
+
+      <button type="button" class="btn btn-camera" id="btn-camera">
+        <span class="btn-emoji" aria-hidden="true">📷</span>
+        <span class="btn-text">いまから さつえい</span>
+      </button>
+      <!-- カメラ録画が使えない端末用（OSの撮影アプリを使う） -->
+      <input type="file" id="file-capture" accept="video/*" capture="environment" class="visually-hidden">
+
+      <p class="small-note" id="camera-note" hidden></p>
+      <p class="small-note">どうがは 15びょうくらいが ちょうどいいよ。</p>
+      <div class="privacy-note privacy-note-small" role="note">
+        <span class="privacy-icon" aria-hidden="true">🔒</span>
+        <p>どうがは この たんまつの 中だけで しょりされます。</p>
+      </div>
+    </div>
+
+    <!-- 2b. さつえい中 -->
+    <div id="input-camera" class="panel" hidden>
+      <div class="video-frame">
+        <video id="live-video" playsinline muted autoplay></video>
+        <div class="rec-badge" id="rec-badge" hidden><span class="rec-dot" aria-hidden="true"></span><span id="rec-time">0</span></div>
+      </div>
+      <p class="hint" id="rec-hint">スマホを うごかないように おいて、ぜんしんを うつしてね。</p>
+      <button type="button" class="rec-button" id="btn-record" aria-label="さつえいを はじめる">
+        <span class="rec-button-inner"></span>
+      </button>
+      <p class="rec-label" id="rec-label">タップで さつえい スタート</p>
+      <button type="button" class="btn btn-ghost" id="btn-camera-cancel">やめる</button>
+    </div>
+
+    <!-- 2c. かくにん -->
+    <div id="input-review" class="panel" hidden>
+      <p class="lead">この どうがで いいかな？</p>
+      <div class="video-frame">
+        <video id="review-video" playsinline controls muted preload="auto"></video>
+      </div>
+      <button type="button" class="btn btn-go" id="btn-analyze">
+        <span class="btn-emoji" aria-hidden="true">🔍</span>
+        <span class="btn-text">これで かいせき</span>
+      </button>
+      <button type="button" class="btn btn-ghost" id="btn-retake">
+        <span class="btn-emoji" aria-hidden="true">🔄</span>
+        <span class="btn-text">とりなおす</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- ===== 3. 解析中 ===== -->
+  <section id="screen-analyzing" class="screen" aria-labelledby="analyzing-title" hidden>
+    <h2 id="analyzing-title" tabindex="-1">フォームを しらべているよ…</h2>
+    <div class="video-frame analyze-frame">
+      <canvas id="analyze-canvas" aria-label="かいせきちゅうの がめん"></canvas>
+      <video id="analyze-video" class="offscreen-video" playsinline muted preload="auto" aria-hidden="true" tabindex="-1"></video>
+    </div>
+    <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progress">
+      <div class="progress-bar" id="progress-bar"></div>
+      <span class="progress-text" id="progress-text">0%</span>
+    </div>
+    <p class="cheer" id="cheer" aria-live="polite">がんばって しらべているよ！</p>
+    <p class="small-note" id="analyze-note">はじめての ときは、AIの モデル（5〜10MBくらい）を ダウンロードするので ちょっと まってね。</p>
+    <button type="button" class="btn btn-ghost" id="btn-analyze-cancel">やめる</button>
+  </section>
+
+  <!-- ===== 3b. 失敗・エラー ===== -->
+  <section id="screen-fail" class="screen" aria-labelledby="fail-title" hidden>
+    <div class="fail-card">
+      <div class="fail-emoji" aria-hidden="true">🤔</div>
+      <h2 id="fail-title" tabindex="-1">うまく みえなかったよ</h2>
+      <p id="fail-reason" class="fail-reason"></p>
+    </div>
+    <button type="button" class="btn btn-go" id="btn-fail-retry">
+      <span class="btn-emoji" aria-hidden="true">💪</span>
+      <span class="btn-text">もういちど とってみよう！</span>
+    </button>
+    <button type="button" class="btn btn-ghost" id="btn-fail-home">ホームへ</button>
+  </section>
+
+  <!-- ===== 4. 結果 ===== -->
+  <section id="screen-result" class="screen" aria-labelledby="result-title" hidden>
+    <div class="screen-head">
+      <h2 id="result-title" tabindex="-1">けっかが でたよ！</h2>
+      <span class="mode-pill" id="result-mode-pill"></span>
+    </div>
+
+    <div class="score-card">
+      <div class="stars" id="stars" role="img" aria-label=""></div>
+      <p class="score"><span id="score-num">0</span><small>てん</small></p>
+      <p class="headline" id="headline"></p>
+    </div>
+
+    <div class="card praise-card">
+      <h3>🌟 よかったところ</h3>
+      <ul class="praise-list" id="praise-list"></ul>
+    </div>
+
+    <div class="card">
+      <h3>💪 もっと よくなる ポイント</h3>
+      <div id="tips-list" class="tips-list"></div>
+    </div>
+
+    <div class="card goal-card">
+      <h3>🎯 つぎの もくひょう</h3>
+      <p id="next-goal" class="goal-text"></p>
+    </div>
+
+    <div class="card">
+      <h3>🎬 キーモーメント</h3>
+      <p class="hint">タップすると、フォームを じっくり みられるよ。</p>
+      <div class="moments" id="moments"></div>
+
+      <div class="viewer" id="viewer" hidden>
+        <p class="viewer-label" id="viewer-label" aria-live="polite"></p>
+        <div class="video-frame">
+          <canvas id="viewer-canvas" aria-label="フォームの がぞう"></canvas>
+        </div>
+        <label class="slider-label" for="viewer-slider">スライドして コマおくり</label>
+        <input type="range" id="viewer-slider" min="0" max="0" step="1" value="0">
+        <p class="viewer-time" id="viewer-time">0.0びょう</p>
+        <button type="button" class="btn btn-ghost btn-small" id="btn-viewer-close">とじる</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>📊 くわしい けっか</h3>
+      <ul class="metrics" id="metrics-list"></ul>
+      <p class="legend">
+        <span class="chip chip-good">◎ すごい</span>
+        <span class="chip chip-ok">○ いいね</span>
+        <span class="chip chip-try">△ ねらおう</span>
+      </p>
+    </div>
+
+    <div class="actions">
+      <button type="button" class="btn btn-go" id="btn-again">
+        <span class="btn-emoji" aria-hidden="true">🔁</span>
+        <span class="btn-text">もういちど</span>
+      </button>
+      <button type="button" class="btn btn-save" id="btn-save">
+        <span class="btn-emoji" aria-hidden="true">💾</span>
+        <span class="btn-text">けっかを ほぞん</span>
+      </button>
+      <button type="button" class="btn btn-ghost" id="btn-home">
+        <span class="btn-emoji" aria-hidden="true">🏠</span>
+        <span class="btn-text">ホームへ</span>
+      </button>
+    </div>
+    <p class="small-note center">ほぞんした がぞうは この たんまつに ダウンロードされるだけで、どこにも おくられないよ。</p>
+  </section>
+
+  <footer class="footer">
+    <p>🔒 どうがや からだの データは、この たんまつの 中だけで つかわれます。</p>
+  </footer>
+</main>
+
+<script nomodule>document.body.insertAdjacentHTML('afterbegin','<p class="noscript">このブラウザでは つかえないよ。あたらしい Chrome / Safari で ひらいてね。</p>');</script>
+<script type="module" src="./js/app.js"></script>
+</body>
+</html>
